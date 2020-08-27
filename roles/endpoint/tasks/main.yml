@@ -1,0 +1,7 @@
+- name: Update WireGuard configuration with new targets
+  replace:
+    path: "/etc/wireguard/{{ interface }}.conf"
+    backup: yes
+    regexp: "\\[Peer\\][^[]*{{ hostvars[item].wireguard_address | regex_escape() }}"
+    replace: "{{ lookup('template', 'peer.conf.j2') }}"
+  loop: "{{ groups.targets }}"

@@ -1,0 +1,11 @@
+- name: Generate private key
+  shell: wg genkey
+  register: private_key
+- name: Generate public key
+  shell: "echo {{ private_key.stdout }} | wg pubkey"
+  register: public_key
+- name: Write WireGuard configuration
+  template:
+    src: wg.conf.j2
+    dest: "/etc/wireguard/{{ interface }}.conf"
+    mode: 600
