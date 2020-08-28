@@ -1,13 +1,7 @@
-- name: Update WireGuard configuration with new targets
-  blockinfile:
-    path: "/etc/wireguard/{{ interface }}.conf"
-    backup: yes
-    block: "{{ lookup('template', 'peer.conf.j2') }}"
-  loop: "{{ groups.targets }}"
-  register: wireguard_conf
+- name: Install Arch Linux dependencies
+  import_tasks: arch.yml
+  tags: packages
+  when: ansible_facts['os_family'] == 'Archlinux'
 
-- name: Restart wg-quick using systemd
-  systemd:
-    name: "wg-quick@{{ interface }}"
-    state: restarted
-  when: wireguard_conf.changed
+- name: Setup WireGuard
+  import_tasks: wireguard.yml

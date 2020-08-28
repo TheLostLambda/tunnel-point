@@ -1,7 +1,0 @@
-- name: Install Arch Linux dependencies
-  import_tasks: arch.yml
-  tags: packages
-  when: ansible_facts['os_family'] == 'Archlinux'
-
-- name: Setup WireGuard
-  import_tasks: wireguard.yml

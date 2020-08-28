@@ -1,0 +1,13 @@
+- name: Update WireGuard configuration with new targets
+  blockinfile:
+    path: "/etc/wireguard/{{ interface }}.conf"
+    backup: yes
+    block: "{{ lookup('template', 'peer.conf.j2') }}"
+  loop: "{{ groups.endpoints }}"
+  register: wireguard_conf
+
+- name: Restart wg-quick using systemd
+  systemd:
+    name: "wg-quick@{{ interface }}"
+    state: restarted
+  when: wireguard_conf.changed
