@@ -1,12 +1,13 @@
 [Interface]
 Address = {{ wireguard_address }}
-ListenPort = 51280
-PrivateKey = {{ private_key.stdout }}
+ListenPort = {{ wireguard_port }}
+PrivateKey = {{ private_key }}
 
 {% for peer in groups.peers %}
 [Peer]
 PublicKey = {{ hostvars[peer].public_key }}
 AllowedIPs = {{ hostvars[peer].allowed_ips }}
 Endpoint = {{ hostvars[peer].endpoint }}
+PersistentKeepalive = 25
 
 {% endfor %}

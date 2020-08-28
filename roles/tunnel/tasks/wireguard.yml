@@ -1,11 +1,35 @@
-- name: Generate private key
+- name: Check for an existing private key
+  slurp:
+    src: "/etc/wireguard/{{ interface }}.conf"
+  register: wireguard_conf
+  failed_when: no
+- set_fact:
+    private_key: "{{ wireguard_conf.content | b64decode | regex_findall('PrivateKey = (.*)') | first }}"
+  when: wireguard_conf.content is defined
+
+- name: Generate new private key
   shell: wg genkey
-  register: private_key
+  register: private_genkey
+  when: private_key is undefined
+- set_fact:
+    private_key: "{{ private_genkey.stdout }}"
+  when: private_key is undefined
+
 - name: Generate public key
-  shell: "echo {{ private_key.stdout }} | wg pubkey"
+  shell: "echo {{ private_key }} | wg pubkey"
   register: public_key
+  changed_when: wireguard_conf.content is undefined
+
 - name: Write WireGuard configuration
   template:
     src: wg.conf.j2
     dest: "/etc/wireguard/{{ interface }}.conf"
     mode: 600
+  register: wireguard_conf
+
+- name: Enable and (re)start wg-quick
+  systemd:
+    name: "wg-quick@{{ interface }}"
+    state: restarted
+    enabled: yes
+  when: wireguard_conf.changed
